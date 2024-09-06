@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# تابع برای تولید آدرس IPv4 تصادفی از محدوده مشخص شده
+generate_ipv4() {
+    local IFS=. 
+    read -r i1 i2 i3 i4 <<< "$1"
+    read -r j1 j2 j3 j4 <<< "$2"
+    echo "$((i1 + RANDOM % (j1 - i1 + 1))).$((i2 + RANDOM % (j2 - i2 + 1))).$((i3 + RANDOM % (j3 - i3 + 1))).$((i4 + RANDOM % (j4 - i4 + 1)))"
+}
+
+# تابع برای تولید آدرس IPv6 تصادفی از محدوده مشخص شده
+generate_ipv6() {
+    echo "$(shuf -i $((16#${1//:/}))-$((16#${2//:/})) -n 1 | awk '{printf "%x\n", $1}' | sed 's/../&:/g' | sed 's/:$//')"
+}
+
+# محدوده‌های IPv4
+ipv4_ranges=(
+    "14.1.64.0 14.1.95.255"
+    "27.100.36.0 27.100.39.255"
+    "36.50.2.0 36.50.2.255"
+)
+
+# محدوده‌های IPv6
+ipv6_ranges=(
+    "2001:dd8:7:: 2001:dd8:7:ffff:ffff:ffff:ffff:ffff"
+    "2001:df0:27e:: 2001:df0:27f:ffff:ffff:ffff:ffff"
+    "2001:df0:290:: 2001:df0:290:ffff:ffff:ffff:ffff"
+)
+
+# انتخاب تصادفی IPv4 یا IPv6
+if (( RANDOM % 2 )); then
+    range=${ipv4_ranges[RANDOM % ${#ipv4_ranges[@]}]}
+    echo "Generated IPv4: $(generate_ipv4 $range)"
+else
+    range=${ipv6_ranges[RANDOM % ${#ipv6_ranges[@]}]}
+    echo "Generated IPv6: $(generate_ipv6 ${range%% *} ${range##* })"
+fi
+
+# چاپ امضا
+echo "DNS store V84"
